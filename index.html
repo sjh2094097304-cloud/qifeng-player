@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020"><title>音乐网页端播放器 · 起风了</title>
+<style>
+:root{--bg:#0b1020;--fg:#e8ecff;--dim:#7a83a6;--on:#ff9d2f;--on2:#3ea6ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(120% 80% at 50% 0%,#1a2348 0%,var(--bg) 60%);color:var(--fg);
+ font-family:-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.top{padding:calc(10px + env(safe-area-inset-top)) 14px 6px}
+.row{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:6px;border-radius:6px;background:#26304f;overflow:hidden}
+.bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--on2),var(--on))}
+.time{font-variant-numeric:tabular-nums;font-size:11px;color:var(--dim);min-width:38px;text-align:right}
+.cover{align-self:center;width:min(52vw,220px);aspect-ratio:1;border-radius:16px;margin:2px 0 6px;box-shadow:0 14px 40px rgba(0,0,0,.5);object-fit:cover;background:#141b30}
+.meta{text-align:center;padding:0 18px 4px}
+.meta h1{font-size:20px;margin:0 0 4px;font-weight:600}
+.meta p{margin:0;color:var(--dim);font-size:13px}
+.lyric{flex:1;overflow:hidden;padding:4px 26px calc(8px + env(safe-area-inset-bottom));
+ -webkit-mask-image:linear-gradient(#0000 0,#000 26%,#000 74%,#0000 100%);mask-image:linear-gradient(#0000 0,#000 26%,#000 74%,#0000 100%)}
+.lcline{margin:12px 0;text-align:center;font-size:15px;color:var(--dim);line-height:2;transition:font-size .3s}
+.lcline .ch{display:inline-block;transition:color .18s}
+.lcline.active{font-size:18px}.lcline.active .ch{color:#4a5578}.lcline.active .ch.on{color:var(--on)}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:28px;padding:10px 0 calc(14px + env(safe-area-inset-bottom))}
+.ctrl button{background:none;border:0;color:var(--fg);font-size:26px;cursor:pointer}
+.ctrl button.play{font-size:40px}
+.overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ background:rgba(11,16,32,.55);backdrop-filter:blur(6px);z-index:9;gap:14px;cursor:pointer}
+.overlay .big{width:92px;height:92px;border-radius:50%;background:var(--on);color:#1a1200;display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 12px 40px rgba(255,157,47,.5)}
+.overlay .t{font-size:14px;color:var(--dim)}
+.overlay .err{font-size:13px;color:#ff6b6b;max-width:78%;text-align:center;line-height:1.6}
+.overlay .fb{margin-top:4px;font-size:12px;color:#8fa0c8}.overlay .fb a{color:var(--on2);text-decoration:underline}
+.hidden{display:none!important}
+</style></head>
+<body>
+<div class="top"><div class="row">
+<span class="time" id="cur">00:00</span><div class="bar"><i id="prog"></i></div><span class="time" id="dur">--:--</span>
+</div></div>
+<img class="cover" id="cover" src="cover.jpg" alt="">
+<div class="meta"><h1>起风了</h1><p>买辣椒也用券（冯沁苑）</p></div>
+<div class="lyric" id="lyric"></div>
+<div class="ctrl"><button id="prev">⏮</button><button id="play" class="play">▶</button><button id="next">⏭</button></div>
+<div class="overlay" id="overlay">
+  <div class="big" id="startbtn">▶</div>
+  <div class="t">点一下开始播放 · 后台也能继续</div>
+  <div class="err" id="err"></div>
+  <div class="fb">网页放不出声？ <a href="https://music.163.com/song?id=1330348068" target="_blank">直接去网易云听 →</a></div>
+</div>
+<script id="lrcdata" type="text/plain">[00:00.000] 作词 : 米果
+[00:01.000] 作曲 : 高橋優
+[00:02.000] 编曲 : 池窪浩一 (Kouichi Ikekubo)
+[00:25.237]这一路上走走停停
+[00:28.592]顺着少年漂流的痕迹
+[00:31.681]迈出车站的前一刻
+[00:34.795]竟有些犹豫
+[00:37.794]不禁笑这近乡情怯
+[00:41.191]仍无可避免
+[00:43.819]而长野的天
+[00:45.134]依旧那么暖
+[00:46.684]风吹起了从前
+[00:49.153]从前初识这世间
+[00:52.185]万般流连
+[00:53.962]看着天边似在眼前
+[00:56.798]也甘愿赴汤蹈火去走它一遍
+[01:01.966]如今走过这世间
+[01:05.001]万般流连
+[01:06.632]翻过岁月不同侧脸
+[01:09.861]措不及防闯入你的笑颜
+[01:15.513]我曾难自拔于世界之大
+[01:19.605]也沉溺于其中梦话
+[01:22.837]不得真假 不做挣扎 不惧笑话
+[01:28.501]我曾将青春翻涌成她
+[01:31.930]也曾指尖弹出盛夏
+[01:35.281]心之所动 且就随缘去吧
+[01:41.156]逆着光行走 任风吹雨打
+[01:58.028]短短的路走走停停
+[02:01.171]也有了几分的距离
+[02:04.236]不知抚摸的是故事 还是段心情
+[02:10.711]也许期待的不过是 与时间为敌
+[02:16.193]再次看到你
+[02:17.991]微凉晨光里
+[02:19.556]笑得很甜蜜
+[02:22.116]从前初识这世间
+[02:24.937]万般流连
+[02:26.663]看着天边似在眼前
+[02:29.616]也甘愿赴汤蹈火去走它一遍
+[02:34.711]如今走过这世间
+[02:37.657]万般流连
+[02:39.389]翻过岁月不同侧脸
+[02:42.360]措不及防闯入你的笑颜
+[02:48.265]我曾难自拔于世界之大
+[02:52.336]也沉溺于其中梦话
+[02:55.538]不得真假 不做挣扎 不惧笑话
+[03:01.140]我曾将青春翻涌成她
+[03:05.235]也曾指尖弹出盛夏
+[03:08.062]心之所动 且就随缘去吧
+[03:39.324]晚风吹起你鬓间的白发
+[03:43.574]抚平回忆留下的疤
+[03:46.788]你的眼中 明暗交杂 一笑生花
+[03:52.294]暮色遮住你蹒跚的步伐
+[03:56.330]走进床头藏起的画
+[03:59.544]画中的你 低着头说话
+[04:05.074]我仍感叹于世界之大
+[04:08.784]也沉醉于儿时情话
+[04:12.150]不剩真假 不做挣扎 无谓笑话
+[04:17.925]我终将青春还给了她
+[04:21.677]连同指尖弹出的盛夏
+[04:25.007]心之所动 就随风去了
+[04:30.601]以爱之名 你还愿意吗
+[04:38.541]
+[05:20.868] 吉他 : 池窪浩一 (Kouichi Ikekubo)
+[05:21.423] 贝斯 : 小島剛広 (Takehiro Kojima)
+[05:21.978] 鼓 : 吉田佳史 (TRICERATOPS) (Yoshifumi Yoshida(TRICERATOPS))
+[05:22.533] 键盘 : 平畑徹也 (Tetsuya Hirahata)
+[05:23.088] 小提琴 : 須磨和声 (Wasei Suma)
+[05:23.643] 弦乐 : 須磨和声/池窪浩一
+[05:24.198] 录音工程 : 玉乃井光紀 (Mitsunori Tamanoi) - studioFine
+[05:24.753] 发行 : Negia Entertainment Inc.
+[05:25.308] 特别支持：中村光雄(Mitsuo Nakamura)</script>
+<audio id="a" preload="auto" playsinline>
+  <source src="qf80.mp3" type="audio/mpeg">
+</audio>
+<script>
+const A=document.getElementById('a'); A.preload='auto';
+const $=s=>document.querySelector(s);
+const cur=$('#cur'),dur=$('#dur'),prog=$('#prog'),playBtn=$('#play'),lyricBox=$('#lyric'),
+      overlay=$('#overlay'),errBox=$('#err');
+let lines=[];
+function loadLrc(){
+ const txt=document.getElementById('lrcdata').textContent.replace(/\\u003c/g,'<');
+ const raw=txt.split(/\r?\n/).filter(l=>l.trim());
+ const re=/^\[(\d+):(\d+(?:\.\d+)?)\]\s?(.*)$/;
+ for(const l of raw){const m=l.match(re);if(!m)continue;
+   const start=+m[1]*60+parseFloat(m[2]);const text=(m[3]||'').trim();
+   if(text && !/作词|作曲|编曲|Lrc|offset/i.test(text)) lines.push({start,text,chars:[...text.replace(/\s+/g,'')]})}
+ lines.sort((a,b)=>a.start-b.start);
+ lines.forEach((ln,i)=>ln.end=lines[i+1]?lines[i+1].start:ln.start+6);
+ render()
+}
+function render(){lyricBox.innerHTML='';lines.forEach((ln,i)=>{const d=document.createElement('div');d.className='lcline';d.id='L'+i;
+ ln.chars.forEach(ch=>{const s=document.createElement('span');s.className='ch';s.textContent=ch;d.appendChild(s)});lyricBox.appendChild(d)})}
+function fmt(s){if(!isFinite(s))return'--:--';s=Math.max(0,s|0);return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+let curLine=-1;
+function tick(){
+ const t=A.currentTime||0;cur.textContent=fmt(t);let i=curLine;
+ while(i<lines.length-1&&t>=lines[i+1].start)i++;
+ while(i>0&&t<lines[i-1].start)i--;
+ if(i!==curLine){curLine=i;const el=document.getElementById('L'+i);el&&el.scrollIntoView({block:'center',behavior:'smooth'})}
+ if(i>=0){const ln=lines[i],n=ln.chars.length,d=(ln.end-ln.start)||1,p=Math.min(1,Math.max(0,(t-ln.start)/d)),on=Math.floor(p*n);
+   const sp=lyricBox.children[i];if(sp){[...sp.children].forEach((c,j)=>c.classList.toggle('on',j<on));sp.classList.add('active')}}
+ prog.style.width=(A.duration?(t/A.duration*100):0)+'%';requestAnimationFrame(tick)
+}
+function setI(){playBtn.textContent=A.paused?'▶':'⏸'}
+function hideOverlay(){overlay.classList.add('hidden')}
+function startPlay(){
+ errBox.textContent='正在加载…'; A.load();
+ A.play().then(hideOverlay).catch(e=>{errBox.textContent='点不动：'+(e&&e.name||e)+' → 用下面网易云链接'});
+}
+A.addEventListener('play',()=>{hideOverlay();setI();try{if(navigator.mediaSession)navigator.mediaSession.playbackState='playing'}catch(e){}})
+A.addEventListener('pause',setI)
+A.addEventListener('error',()=>{const c=A.error;errBox.textContent='音频没拉到（'+(c?c.code+' ':'')+'）→ 用下面网易云链接'})
+A.addEventListener('loadedmetadata',()=>{dur.textContent=fmt(A.duration);
+ if(navigator.mediaSession){try{navigator.mediaSession.metadata=new MediaMetadata({title:'起风了',artist:'买辣椒也用券（冯沁苑）',
+  artwork:[{src:'cover.jpg',sizes:'300x300',type:'image/jpeg'}]});
+  navigator.mediaSession.setActionHandler('play',()=>A.play());
+  navigator.mediaSession.setActionHandler('pause',()=>A.pause())}catch(e){}}
+})
+A.addEventListener('ended',()=>{A.currentTime=0;A.play().catch(()=>{})})
+playBtn.onclick=()=>{A.paused?startPlay():A.pause()}
+document.getElementById('startbtn').onclick=(e)=>{e.stopPropagation();startPlay()}
+overlay.onclick=startPlay
+$('#prev').onclick=()=>A.currentTime=Math.max(0,A.currentTime-10)
+$('#next').onclick=()=>A.currentTime=Math.min(A.duration||0,A.currentTime+10)
+document.querySelector('.bar').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();if(A.duration)A.currentTime=(e.clientX-r.left)/r.width*A.duration})
+loadLrc();requestAnimationFrame(tick);
+A.load(); A.play().then(hideOverlay).catch(()=>{});
+</script>
+</body></html>
